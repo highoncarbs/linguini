@@ -42,9 +42,8 @@ def nlp2sql():
     # Logic for In2Sql
     xx = '"'+str(input_text['text'])+'"'
     file_directory = os.path.join('..', 'sqldump')
-    query = f"python -m ln2sql.main -d {file_directory}/{dumpfile} -l lang_store/english.csv -j output.json -i {xx}"
-    print(query)
 
+    query = f"python -m ln2sql.main -d {file_directory}/{dumpfile} -l lang_store/english.csv -j output.json -i {xx}"
     sql_result = subprocess.call(query)
 
     saved_file = open('output.json', 'r')
@@ -55,8 +54,10 @@ def nlp2sql():
     json_content = invalid_json_content[:last_comma_index] + \
         invalid_json_content[last_comma_index + 1:]
 
-    return jsonify({'message': 'Executed SQL results', 'result': loads(json_content,
-                                                                       object_pairs_hook=helper.log_error_on_duplicates)})
+    return jsonify({
+        'message': 'Executed SQL results',
+        'result': loads(json_content, object_pairs_hook=helper.log_error_on_duplicates),
+    })
 
 # python3 -m ln2sql.main -d database_store/city.sql -l lang_store/english.csv -j output.json -i "Count how many city there are with the name blob?"
 
