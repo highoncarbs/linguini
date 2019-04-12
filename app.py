@@ -17,21 +17,21 @@ def get_sqldump():
         if 'file' not in request.files:
             print(log_line.format(
                 'INFO', 'File part not found in POST request . Please check if file is being uploaded'))
-            return jsonify({'message': 'No file found'})
+            return jsonify({'message': 'No file found', 'success': False})
         else:
             file = request.files['file']
             if file.filename == "":
                 print(log_line.format(
                     'INFO', 'FIle not selected properly , or empty file being supplied'))
-                return jsonify({'message': 'Empty file is being submitted'})
+                return jsonify({'message': 'Empty file is being submitted', 'success': False})
             if file:
                 session['file_name'] = file.filename
                 file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-                return jsonify({'message': 'Filed saved under ./sqldump as {}'.format(file.filename), 'status': 'success'})
+                return jsonify({'message': 'Filed saved under ./sqldump as {}'.format(file.filename), 'success': True})
             else:
-                return jsonify({'message': 'Invalid Request'})
+                return jsonify({'message': 'Invalid Request', 'success': False})
     else:
-        return jsonify({'message': 'Invalid Request'})
+        return jsonify({'message': 'Invalid Request', 'success': False})
 
 
 @app.route('/api/nlp2sql', methods=['POST', "GET"])
@@ -50,7 +50,8 @@ def nlp2sql():
 
     if error is not None:
         return jsonify({
-            'message': 'Unable to process to request'
+            'message': 'Unable to process to request',
+            'success': False
         })
 
     output = output.decode('utf-8').replace('\r\n', ' ')
@@ -65,6 +66,7 @@ def nlp2sql():
 
     return jsonify({
         'message': 'Executed SQL results',
+        'success': False,
         'result': loads(json_content, object_pairs_hook=helper.log_error_on_duplicates),
         'query': output
     })
