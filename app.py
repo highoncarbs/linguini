@@ -1,17 +1,20 @@
 from flask import Flask, request, jsonify, json, session
+from flask_cors import CORS, cross_origin
 from json import loads
 import os
 import subprocess
 import helper
 
 app = Flask(__name__)
-
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 UPLOAD_FOLDER = './sqldump'
 log_line = '{STATUS} : {DESC}'
 
 
 @app.route('/api/sqldump', methods=['POST', 'GET'])
+@cross_origin()
 def get_sqldump():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -35,6 +38,7 @@ def get_sqldump():
 
 
 @app.route('/api/nlp2sql', methods=['POST', "GET"])
+@cross_origin()
 def nlp2sql():
     input_text = request.get_json()
     dumpfile = session.get('file_name')
