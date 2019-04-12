@@ -44,7 +44,16 @@ def nlp2sql():
     file_directory = os.path.join('..', 'sqldump')
 
     query = f"python -m ln2sql.main -d {file_directory}/{dumpfile} -l lang_store/english.csv -j output.json -i {xx}"
-    sql_result = subprocess.call(query)
+    process = subprocess.Popen(
+        query, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output, error = process.communicate()
+
+    if error is not None:
+        return jsonify({
+            'message': 'Unable to process to request'
+        })
+
+    output = output.decode('utf-8').replace('\r\n', ' ')
 
     saved_file = open('output.json', 'r')
     invalid_json_content = saved_file.read().strip()
@@ -57,6 +66,7 @@ def nlp2sql():
     return jsonify({
         'message': 'Executed SQL results',
         'result': loads(json_content, object_pairs_hook=helper.log_error_on_duplicates),
+        'query': output
     })
 
 # python3 -m ln2sql.main -d database_store/city.sql -l lang_store/english.csv -j output.json -i "Count how many city there are with the name blob?"
