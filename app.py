@@ -6,15 +6,14 @@ import subprocess
 import helper
 
 app = Flask(__name__)
-cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+CORS(app)
 
 UPLOAD_FOLDER = './sqldump'
 log_line = '{STATUS} : {DESC}'
 
 
 @app.route('/api/sqldump', methods=['POST', 'GET'])
-@cross_origin()
 def get_sqldump():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -28,9 +27,12 @@ def get_sqldump():
                     'INFO', 'FIle not selected properly , or empty file being supplied'))
                 return jsonify({'message': 'Empty file is being submitted', 'success': False})
             if file:
-                session['file_name'] = file.filename
                 file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-                return jsonify({'message': 'Filed saved under ./sqldump as {}'.format(file.filename), 'success': True})
+                return jsonify({
+                    'message': 'Filed saved under ./sqldump as {}'.format(file.filename),
+                    'success': True,
+                    'fileName': file.filename
+                })
             else:
                 return jsonify({'message': 'Invalid Request', 'success': False})
     else:
@@ -38,13 +40,12 @@ def get_sqldump():
 
 
 @app.route('/api/nlp2sql', methods=['POST', "GET"])
-@cross_origin()
 def nlp2sql():
-    input_text = request.get_json()
-    dumpfile = session.get('file_name')
+    request_input = request.get_json()
+    dumpfile = request_input['file']
 
     # Logic for In2Sql
-    xx = '"'+str(input_text['text'])+'"'
+    xx = '"'+str(request_input['text'])+'"'
     file_directory = os.path.join('..', 'sqldump')
 
     query = f"python -m ln2sql.main -d {file_directory}/{dumpfile} -l lang_store/english.csv -j output.json -i {xx}"
@@ -70,7 +71,7 @@ def nlp2sql():
 
     return jsonify({
         'message': 'Executed SQL results',
-        'success': False,
+        'success': True,
         'result': loads(json_content, object_pairs_hook=helper.log_error_on_duplicates),
         'query': output
     })
